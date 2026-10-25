@@ -228,3 +228,35 @@ https://example.org/).
 <p>(<a href="https://example.com/a">https://example.com/a</a>&amp;).</p>
 <p>(<a href="https://example.org/path_(x)">https://example.org/path_(x)</a>.)</p>
 //= = = = = = = = = = = = = = = = = = = = = = = =//
+
+
+22: Unicode path from issue #612
+//- - - - - - - - -//
+https://an.wikipedia.org/wiki/Wikipedia:Lista_d'articlos_que_toda_Wikipedia_habría_de_tener
+//- - - - - - - - -//
+<p><a href="https://an.wikipedia.org/wiki/Wikipedia:Lista_d'articlos_que_toda_Wikipedia_habr%C3%ADa_de_tener">https://an.wikipedia.org/wiki/Wikipedia:Lista_d'articlos_que_toda_Wikipedia_habría_de_tener</a></p>
+//= = = = = = = = = = = = = = = = = = = = = = = =//
+
+
+23: WWW path with combining mark and emoji
+//- - - - - - - - -//
+www.example.com/café🙂
+//- - - - - - - - -//
+<p><a href="http://www.example.com/cafe%CC%81%F0%9F%99%82">www.example.com/café🙂</a></p>
+//= = = = = = = = = = = = = = = = = = = = = = = =//
+
+
+24: Unicode path keeps ASCII space and punctuation boundaries
+//- - - - - - - - -//
+https://example.com/café). next
+//- - - - - - - - -//
+<p><a href="https://example.com/caf%C3%A9">https://example.com/café</a>). next</p>
+//= = = = = = = = = = = = = = = = = = = = = = = =//
+
+
+25: Non-ASCII space remains in the path (cmark byte-space rule)
+//- - - - - - - - -//
+https://example.com/a b
+//- - - - - - - - -//
+<p><a href="https://example.com/a%C2%A0b">https://example.com/a b</a></p>
+//= = = = = = = = = = = = = = = = = = = = = = = =//
