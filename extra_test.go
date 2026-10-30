@@ -47,6 +47,74 @@ func TestEndsWithNonSpaceCharacters(t *testing.T) {
 	}
 }
 
+func TestRawHTMLAfterUnclosedBlock(t *testing.T) {
+	tests := []struct {
+		name       string
+		source     string
+		wantSafe   string
+		wantUnsafe string
+	}{
+		{
+			name:       "comment",
+			source:     "a <!-- b\n\nc <!-- x -->\n",
+			wantSafe:   "<p>a &lt;!-- b</p>\n<p>c <!-- raw HTML omitted --></p>\n",
+			wantUnsafe: "<p>a &lt;!-- b</p>\n<p>c <!-- x --></p>\n",
+		},
+		{
+			name:       "processing instruction",
+			source:     "a <? b\n\nc <?x?>\n",
+			wantSafe:   "<p>a &lt;? b</p>\n<p>c <!-- raw HTML omitted --></p>\n",
+			wantUnsafe: "<p>a &lt;? b</p>\n<p>c <?x?></p>\n",
+		},
+		{
+			name:       "declaration",
+			source:     "a <!A b\n\nc <!X>\n",
+			wantSafe:   "<p>a &lt;!A b</p>\n<p>c <!-- raw HTML omitted --></p>\n",
+			wantUnsafe: "<p>a &lt;!A b</p>\n<p>c <!X></p>\n",
+		},
+		{
+			name:       "CDATA",
+			source:     "a <![CDATA[b\n\nc <![CDATA[x]]>\n",
+			wantSafe:   "<p>a &lt;![CDATA[b</p>\n<p>c <!-- raw HTML omitted --></p>\n",
+			wantUnsafe: "<p>a &lt;![CDATA[b</p>\n<p>c <![CDATA[x]]></p>\n",
+		},
+		{
+			name:       "multiline comment in blockquote",
+			source:     "a <!-- b\n\n> c <!--\n> x -->\n",
+			wantSafe:   "<p>a &lt;!-- b</p>\n<blockquote>\n<p>c <!-- raw HTML omitted --></p>\n</blockquote>\n",
+			wantUnsafe: "<p>a &lt;!-- b</p>\n<blockquote>\n<p>c <!--\nx --></p>\n</blockquote>\n",
+		},
+		{
+			name:       "same paragraph multiline control",
+			source:     "a <!-- b\nc -->\n",
+			wantSafe:   "<p>a <!-- raw HTML omitted --></p>\n",
+			wantUnsafe: "<p>a <!-- b\nc --></p>\n",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, unsafe := range []bool{false, true} {
+				name, want := "safe", tt.wantSafe
+				r := html.New()
+				if unsafe {
+					name, want = "unsafe", tt.wantUnsafe
+					r = html.New(html.WithUnsafe())
+				}
+				t.Run(name, func(t *testing.T) {
+					source := []byte(tt.source)
+					var b bytes.Buffer
+					if err := r.Render(&b, source, parser.New().Parse(source)); err != nil {
+						t.Fatal(err)
+					}
+					if b.String() != want {
+						t.Errorf("got:\n%s\nwant:\n%s", b.String(), want)
+					}
+				})
+			}
+		})
+	}
+}
+
 func TestWindowsNewLine(t *testing.T) {
 	p := parser.New()
 	r := html.New(html.WithXHTML())

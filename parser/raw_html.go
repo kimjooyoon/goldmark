@@ -126,7 +126,7 @@ func (s *rawHTMLParser) parseComment(block text.Reader, pctx Context) ast.Node {
 	line = line[offset:]
 	var indices []text.Index
 	for {
-		if cache.pos < 0 || cache.pos > segment.Stop {
+		if cache.pos < 0 || segment.Start >= cache.pos {
 			index := bytes.Index(line, closeComment)
 			if index > -1 {
 				stop := segment.Start + offset + index + len(closeComment)
@@ -160,7 +160,7 @@ func (s *rawHTMLParser) parseUntil(block text.Reader, closer []byte, ck ContextK
 		if line == nil {
 			break
 		}
-		if cache.pos >= 0 && cache.pos <= segment.Stop {
+		if cache.pos >= 0 && segment.Start < cache.pos {
 			block.AdvanceLine()
 			continue
 		}
